@@ -1,6 +1,7 @@
 import os
 import psycopg2
 from dotenv import load_dotenv
+from app.models.user import CREATE_USERS_TABLE
 
 load_dotenv()
 db_host = os.getenv("DB_HOST")
@@ -17,4 +18,6 @@ connection = psycopg2.connect(
     password=db_password
 )
 
-print("Connected to the database successfully!")
+cursor = connection.cursor()
+cursor.execute(CREATE_USERS_TABLE)
+connection.commit()
