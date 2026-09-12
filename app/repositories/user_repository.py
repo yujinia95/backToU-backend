@@ -14,6 +14,7 @@ class UserRepository:
     """
 
     def __init__(self, conn: Connection) -> None:
+        """Initialize the repository with a database connection."""
         self.conn = conn
 
     def get_by_email(self, email: str) -> dict[str, Any] | None:
@@ -25,19 +26,20 @@ class UserRepository:
                 FROM users
                 WHERE email = %s
                 """,
-                (email,), # Parameterized query to prevent SQL injection
+                (email,),  # Parameterized query to prevent SQL injection
             )
             return cursor.fetchone()
         
 
     def create_user(
         self,
-        *,
+        *,  # Require the following arguments to be passed by name
         email: str,
         first_name: str,
         last_name: str,
         password_hash: str,
     ) -> dict[str, Any]:
+        """Insert a user row and return its public fields."""
         with self.conn.cursor() as cursor:
             cursor.execute(
                 """
