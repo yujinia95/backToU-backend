@@ -1,7 +1,36 @@
-from app.schemas.item import ItemResponse
-from app.models.item import GET_ALL_ITEMS, GET_ITEM_BY_ID
+from app.schemas.item import ItemResponse, ItemPostRequest
+from app.models.item import POST_NEW_ITEM, GET_ALL_ITEMS, GET_ITEM_BY_ID
 from app.database import connection
 from typing import List
+
+def create_item(data: ItemPostRequest) -> ItemResponse:
+    cursor = connection.cursor()
+    try:
+        cursor.execute(
+            POST_NEW_ITEM, 
+            (data.user_id, data.type, data.date, data.title, data.description, data.category, data.colors, data.brand, data.location)
+        )
+        
+        item_id, user_id, type_, status, date_, title, description, category, colors, brand, location, created_at = cursor.fetchone()
+        connection.commit()
+    except Exception as e:
+        connection.rollback()
+        raise e
+    
+    return ItemResponse(
+        id=item_id,
+        user_id=user_id,
+        type=type_,
+        status=status,
+        date=date_,
+        title=title,
+        description=description,
+        category=category,
+        colors=colors,
+        brand=brand,
+        location=location,
+        created_at=created_at
+    )
 
 def get_item_by_id(id: int) -> ItemResponse:
     cursor = connection.cursor()

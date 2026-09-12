@@ -5,14 +5,18 @@ from app.models.user import INSERT_USER, LOGIN_USER
 
 def create_user(data: SignupRequest) -> SignupResponse:
     cursor = connection.cursor()
-    hashed_password = bcrypt.hashpw(data.password.encode(), bcrypt.gensalt()).decode()
+    try:
+        hashed_password = bcrypt.hashpw(data.password.encode(), bcrypt.gensalt()).decode()
 
-    cursor.execute(
-        INSERT_USER,
-        (data.first_name, data.last_name, data.email, hashed_password)
-    )
-    user_id, first_name, last_name, email = cursor.fetchone() 
-    connection.commit()
+        cursor.execute(
+            INSERT_USER,
+            (data.first_name, data.last_name, data.email, hashed_password)
+        )
+        user_id, first_name, last_name, email = cursor.fetchone() 
+        connection.commit()
+    except Exception as e:
+        connection.rollback()
+        raise e
     
     return SignupResponse(id=user_id, first_name=first_name, last_name=last_name, email=email)
 

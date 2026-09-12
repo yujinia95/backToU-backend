@@ -16,7 +16,11 @@ CREATE_ITEM_TABLE = """
     )
 """
 
-POST_ITEM = """
+# provide user_id since we don't have JWT yet
+POST_NEW_ITEM = """
+    INSERT INTO items (user_id, type, date, title, description, category, colors, brand, location)
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+    RETURNING id, user_id, type, status, date, title, description, category, colors, brand, location, created_at
 """
 
 GET_ALL_ITEMS = """
