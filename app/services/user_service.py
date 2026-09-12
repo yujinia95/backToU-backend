@@ -3,6 +3,7 @@ from typing import Any
 from psycopg import Connection
 
 from app.core.security import hash_password
+from app.exceptions.user import EmailAlreadyExistsError
 from app.repositories.user_repository import UserRepository
 from app.schemas.user import UserCreate
 
@@ -31,7 +32,9 @@ class UserService:
         existing_user = self.user_repository.get_by_email(user.email)
 
         if existing_user is not None:
-            raise ValueError("User with this email already exists.")
+            raise EmailAlreadyExistsError(
+                "User with this email already exists."
+            )
 
         hashed_password = hash_password(user.password)
 
