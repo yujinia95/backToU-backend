@@ -1,8 +1,9 @@
 # BaseModel validates input data using the field types and rules we define.
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
+
 class UserCreate(BaseModel):
-    email: EmailStr
+    email: EmailStr = Field(max_length=50)
     first_name: str = Field(min_length=1, max_length=50)
     last_name: str = Field(min_length=1, max_length=50)
     password: str
@@ -13,3 +14,11 @@ class UserCreate(BaseModel):
         if isinstance(value, str):
             return value.strip()
         return value
+
+
+class UserResponse(BaseModel):
+    id: int
+    email: EmailStr
+    first_name: str
+    last_name: str
+    
