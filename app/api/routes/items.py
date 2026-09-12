@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
-from app.services.item_service import create_item as create_item_service, get_all_items, get_item_by_id
-from app.schemas.item import ItemPostRequest, ItemResponse
+from app.services.item_service import create_item as create_item_service, update_item as update_item_service, get_all_items, get_item_by_id
+from app.schemas.item import ItemPostRequest, ItemResponse, ItemUpdateRequest
 from typing import List
 
 router = APIRouter(prefix="/api/v1/items", tags=["items"])
@@ -19,4 +19,10 @@ def get_item(id: int) -> ItemResponse:
         return get_item_by_id(id)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
-    
+
+@router.patch("/{id}")
+def update_item(id: int, data: ItemUpdateRequest) -> ItemResponse:
+    try:
+        return update_item_service(id, data)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))

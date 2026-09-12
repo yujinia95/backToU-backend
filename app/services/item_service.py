@@ -1,4 +1,4 @@
-from app.schemas.item import ItemResponse, ItemPostRequest
+from app.schemas.item import ItemResponse, ItemPostRequest, ItemUpdateRequest
 from app.models.item import POST_NEW_ITEM, GET_ALL_ITEMS, GET_ITEM_BY_ID
 from app.database import connection
 from typing import List
@@ -82,3 +82,46 @@ def get_all_items() -> List[ItemResponse]:
         ))
 
     return items
+
+def update_item(id: int, data: ItemUpdateRequest) -> ItemResponse:
+    updated_data = data.model_dump(exclude_unset=True)
+    set_clauses = [f"{field} = %s" for field in updated_data.keys()]
+    set_clause_str=", ".join(set_clauses)
+    
+    query = f"""
+        UPDATE items
+        SET {set_clause_str}
+        WHERE id = %s
+        RETURNING id, user_id, type, status, date, title, description, category, colors, brand, location, created_at
+    """
+    
+    cursor = connection.cursor()
+    try:
+        cursor.execute(query, (list(updated_data.values())+ [id]))
+        row = cursor.fetchone()
+
+        if row is None:
+            raise ValueError("Item is not found")
+        
+        connection.commit()
+    except Exception as e:
+        connection.rollback()
+        raise e
+    
+    item_id, user_id, type_, status, date_, title, description, category, colors, brand, location, created_at = row
+    return ItemResponse(
+        id=item_id,
+        user_id=user_id,
+        type=type_,
+        status=status,
+        date=date_,
+        title=title,
+        description=description,
+        category=category,
+        colors=colors,
+        brand=brand,
+        location=location,
+        created_at=created_at
+    )
+    
+    
