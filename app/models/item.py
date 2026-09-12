@@ -34,9 +34,8 @@ GET_ITEM_BY_ID = """
     WHERE id = %s
 """
 
-UPDATE_ITEM = """
-"""
-
-DELETE_ITEM = """
+DELETE_ITEM_BY_ID = """
+    DELETE FROM items
+    WHERE id = %s;  
 """
 

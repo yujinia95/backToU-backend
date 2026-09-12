@@ -1,5 +1,5 @@
 from app.schemas.item import ItemResponse, ItemPostRequest, ItemUpdateRequest
-from app.models.item import POST_NEW_ITEM, GET_ALL_ITEMS, GET_ITEM_BY_ID
+from app.models.item import POST_NEW_ITEM, GET_ALL_ITEMS, GET_ITEM_BY_ID, DELETE_ITEM_BY_ID
 from app.database import connection
 from typing import List
 
@@ -123,5 +123,14 @@ def update_item(id: int, data: ItemUpdateRequest) -> ItemResponse:
         location=location,
         created_at=created_at
     )
-    
-    
+
+def delete_item(item_id: int) -> None:
+    cursor = connection.cursor()
+    try: 
+        cursor.execute(DELETE_ITEM_BY_ID, (item_id,))
+        if cursor.rowcount == 0:
+            raise ValueError("Item is not found")
+        connection.commit()
+    except Exception as e:
+        connection.rollback()
+        raise e
