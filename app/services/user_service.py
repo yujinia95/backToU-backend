@@ -1,5 +1,3 @@
-from typing import Any
-
 from psycopg import Connection
 
 from app.core.security import hash_password
@@ -20,11 +18,10 @@ class UserService:
         """Initialize the service and repository with one DB connection."""
         self.conn = conn
         self.user_repository = UserRepository(self.conn)
-        
 
-    def signup(self, user: UserCreate) -> dict[str, Any]:
+    def signup(self, user: UserCreate) -> None:
         """
-        Register a user and return fields that are safe for an API response.
+        Register a user without returning account data.
 
         Check for an existing email, hash the raw password, insert the user,
         and commit the transaction. Roll back the insert if it fails.
@@ -39,7 +36,7 @@ class UserService:
         hashed_password = hash_password(user.password)
 
         try:
-            created_user = self.user_repository.create_user(
+            self.user_repository.create_user(
                 email=user.email,
                 first_name=user.first_name,
                 last_name=user.last_name,
@@ -49,5 +46,3 @@ class UserService:
         except Exception:
             self.conn.rollback()
             raise
-
-        return created_user
