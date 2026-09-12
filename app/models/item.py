@@ -15,3 +15,24 @@ CREATE_ITEM_TABLE = """
         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
     )
 """
+
+POST_ITEM = """
+"""
+
+GET_ALL_ITEMS = """
+    SELECT id, user_id, type, status, date, title, description, category, colors, brand, location, created_at
+    FROM items
+"""
+
+GET_ONE_ITEM = """
+    SELECT id, user_id, type, status, date, title, description, category, colors, brand, location, created_at
+    FROM items
+    WHERE id = %s
+"""
+
+UPDATE_ITEM = """
+"""
+
+DELETE_ITEM = """
+"""
+

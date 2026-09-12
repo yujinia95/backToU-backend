@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 from app.schemas.user import SignupRequest, SignupResponse, LoginRequest
 from app.services.auth_service import create_user, login_user
 
-router = APIRouter(tags=["auth"])
+router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
 
 @router.post("/signup")
 def signup(requestedUser: SignupRequest) -> SignupResponse:
