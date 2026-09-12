@@ -17,7 +17,3 @@ connection = psycopg2.connect(
     user=db_user,
     password=db_password
 )
-
-cursor = connection.cursor()
-cursor.execute(CREATE_USERS_TABLE)
-connection.commit()

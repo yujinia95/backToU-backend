@@ -8,3 +8,9 @@ CREATE TABLE users (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 """
+
+INSERT_USER = """
+    INSERT INTO users (first_name, last_name, email, password)
+    VALUES (%s, %s, %s, %s)
+    RETURNING id, first_name, last_name, email;
+"""
