@@ -24,7 +24,7 @@ GET_ALL_ITEMS = """
     FROM items
 """
 
-GET_ONE_ITEM = """
+GET_ITEM_BY_ID = """
     SELECT id, user_id, type, status, date, title, description, category, colors, brand, location, created_at
     FROM items
     WHERE id = %s
