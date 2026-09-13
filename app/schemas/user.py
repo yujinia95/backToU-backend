@@ -14,3 +14,10 @@ class UserCreate(BaseModel):
         if isinstance(value, str):
             return value.strip()
         return value
+
+
+class UserResponse(BaseModel):
+    id: int
+    email: EmailStr
+    first_name: str
+    last_name: str

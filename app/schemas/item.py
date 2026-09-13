@@ -19,7 +19,6 @@ class ItemPostRequest(BaseModel):
             return value.strip()
         return value
 
-
 class ItemUpdateRequest(BaseModel):
     type: Optional[str] = Field(default=None, min_length=1, max_length=20)
     status: Optional[str] = Field(default=None, min_length=1, max_length=20)
@@ -50,5 +49,4 @@ class ItemResponse(BaseModel):
     colors: Optional[List[str]] = None
     brand: Optional[str] = None
     location: str
-    # image_key: bytea
     created_at: datetime

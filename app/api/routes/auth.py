@@ -8,7 +8,7 @@ from psycopg import Connection
 from app.core.database import get_db
 from app.exceptions.user import EmailAlreadyExistsError, InvalidCredentialsError
 from app.schemas.login import UserLogin
-from app.schemas.user import UserCreate
+from app.schemas.user import UserCreate, UserResponse
 from app.services.user_service import UserService
 
 
@@ -48,27 +48,24 @@ def signup(
 @router.post(
     "/login",
     status_code=status.HTTP_200_OK,
-    response_class=Response,
 )
 def login(
     credentials: UserLogin,
     conn: Annotated[Connection, Depends(get_db)],
-) -> Response:
+) -> UserResponse:
     """
     Handle a login request using validated credentials.
 
     Delegate credential verification to UserService, translate invalid login
-    details into an HTTP 401 response, and return an empty HTTP 200 response
+    details into an HTTP 401 response, and return the user's public data
     when the email and password are correct.
     """
     service = UserService(conn)
 
     try:
-        service.login(credentials)
+        return service.login(credentials)
     except InvalidCredentialsError as error:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=str(error),
         ) from error
-
-    return Response(status_code=status.HTTP_200_OK)
