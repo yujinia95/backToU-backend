@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from psycopg import Connection
 
 from app.core.database import get_db
-from app.exceptions.item import EmptyUpdateError, ItemNotFoundError, UserNotFoundError
+from app.exceptions.item import EmptyUpdateError, ItemNotFoundError, UserNotFoundError, InvalidUpdateError
 from app.schemas.item import ItemPostRequest, ItemResponse, ItemUpdateRequest
 from app.services.item_service import ItemService
 
@@ -49,7 +49,7 @@ def update_item_endpoint(
         return service.update_item(id, data)
     except ItemNotFoundError as error:
         raise HTTPException(status_code=404, detail=str(error)) from error
-    except EmptyUpdateError as error:
+    except (EmptyUpdateError, InvalidUpdateError) as error:
         raise HTTPException(status_code=400, detail=str(error)) from error
 
 

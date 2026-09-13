@@ -2,10 +2,11 @@ from psycopg import Connection
 from psycopg.errors import ForeignKeyViolation
 
 from app.repositories.item_repository import ItemRepository
-from app.exceptions.item import EmptyUpdateError, ItemNotFoundError, UserNotFoundError
+from app.exceptions.item import EmptyUpdateError, ItemNotFoundError, UserNotFoundError, InvalidUpdateError
 from app.schemas.item import ItemResponse, ItemPostRequest, ItemUpdateRequest
 from typing import List
 
+NOT_NULLABLE_FIELDS = {"type", "status", "date", "title", "category", "location"}
 
 class ItemService:
     def __init__(self, conn: Connection) -> None:
@@ -47,6 +48,11 @@ class ItemService:
 
     def update_item(self, item_id: int, data: ItemUpdateRequest) -> ItemResponse:
         update_data = data.model_dump(exclude_unset=True)
+        
+        for field in NOT_NULLABLE_FIELDS:
+            if field in update_data and update_data[field] is None:
+                raise InvalidUpdateError(f"{field} cannot be set to null.")
+
         if not update_data:
             raise EmptyUpdateError("No fields provided to update.")
 
