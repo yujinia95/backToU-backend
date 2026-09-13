@@ -1,3 +1,5 @@
+from typing import Any
+
 from psycopg import Connection
 
 from app.core.security import hash_password, verify_password
@@ -47,9 +49,9 @@ class UserService:
             self.conn.rollback()
             raise
 
-    def login(self, credentials: UserLogin) -> None:
+    def login(self, credentials: UserLogin) -> dict[str, Any]:
         """
-        Verify a user's login credentials.
+        Verify a user's login credentials and return their public data.
 
         Find the user by email and compare the submitted password with the
         stored password hash. Raise the same error when either value is wrong.
@@ -66,3 +68,10 @@ class UserService:
 
         if not password_is_valid:
             raise InvalidCredentialsError("Invalid email or password.")
+
+        return {
+            "id": existing_user["id"],
+            "email": existing_user["email"],
+            "first_name": existing_user["first_name"],
+            "last_name": existing_user["last_name"],
+        }
