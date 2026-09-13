@@ -1,21 +1,21 @@
 from psycopg import Connection
 
-from app.core.security import hash_password
-from app.exceptions.user import EmailAlreadyExistsError
+from app.core.security import hash_password, verify_password
+from app.exceptions.user import EmailAlreadyExistsError, InvalidCredentialsError
 from app.repositories.user_repository import UserRepository
+from app.schemas.login import UserLogin
 from app.schemas.user import UserCreate
 
 
 class UserService:
     """
-    Handle user registration workflows.
+    Handle user registration and login workflows.
 
-    Checks email uniqueness, hashes raw passwords, and coordinates
-    user creation via the UserRepository.
+    Coordinates user lookup and creation through UserRepository and handles
+    password hashing and verification through the security module.
     """
 
     def __init__(self, conn: Connection) -> None:
-        """Initialize the service and repository with one DB connection."""
         self.conn = conn
         self.user_repository = UserRepository(self.conn)
 
@@ -46,3 +46,23 @@ class UserService:
         except Exception:
             self.conn.rollback()
             raise
+
+    def login(self, credentials: UserLogin) -> None:
+        """
+        Verify a user's login credentials.
+
+        Find the user by email and compare the submitted password with the
+        stored password hash. Raise the same error when either value is wrong.
+        """
+        existing_user = self.user_repository.get_by_email(credentials.email)
+
+        if existing_user is None:
+            raise InvalidCredentialsError("Invalid email or password.")
+
+        password_is_valid = verify_password(
+            credentials.password,
+            existing_user["password_hash"],
+        )
+
+        if not password_is_valid:
+            raise InvalidCredentialsError("Invalid email or password.")
