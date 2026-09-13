@@ -2,6 +2,7 @@ import bcrypt
 from app.schemas.user import SignupRequest, SignupResponse, LoginRequest
 from app.database import connection
 from app.models.user import INSERT_USER, LOGIN_USER
+import psycopg2
 
 def create_user(data: SignupRequest) -> SignupResponse:
     cursor = connection.cursor()
@@ -14,6 +15,9 @@ def create_user(data: SignupRequest) -> SignupResponse:
         )
         user_id, first_name, last_name, email = cursor.fetchone() 
         connection.commit()
+    except psycopg2.errors.UniqueViolation:
+        connection.rollback()
+        raise ValueError("Email already registered")
     except Exception as e:
         connection.rollback()
         raise e

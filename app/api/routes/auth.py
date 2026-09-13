@@ -6,7 +6,10 @@ router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
 
 @router.post("/signup")
 def signup(requestedUser: SignupRequest) -> SignupResponse:
-    return create_user(requestedUser)
+    try:
+        return create_user(requestedUser)
+    except ValueError as e:
+        raise HTTPException(status_code=409, detail=str(e))
 
 @router.post("/login")
 def login(data: LoginRequest) -> SignupResponse:
