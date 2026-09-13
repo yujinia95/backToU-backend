@@ -1,6 +1,6 @@
 # psycopg: the driver that connects Python to PostgreSQL.
 # dict_row: returns each row as a dictionary like {"email": "..."}.
-import psycopg 
+import psycopg
 from psycopg.rows import dict_row
 
 from app.core.config import settings

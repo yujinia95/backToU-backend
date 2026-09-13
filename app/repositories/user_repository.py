@@ -29,7 +29,6 @@ class UserRepository:
                 (email,),  # Parameterized query to prevent SQL injection
             )
             return cursor.fetchone()
-        
 
     def create_user(
         self,
