@@ -21,12 +21,13 @@ class UserService:
         self.conn = conn
         self.user_repository = UserRepository(self.conn)
 
-    def signup(self, user: UserCreate) -> None:
+    def signup(self, user: UserCreate) -> dict[str, Any]:
         """
-        Register a user without returning account data.
+        Register a user and return their public data.
 
         Check for an existing email, hash the raw password, insert the user,
-        and commit the transaction. Roll back the insert if it fails.
+        and commit the transaction. Return the created user's public fields,
+        or roll back the insert if it fails.
         """
         existing_user = self.user_repository.get_by_email(user.email)
 
@@ -38,7 +39,7 @@ class UserService:
         hashed_password = hash_password(user.password)
 
         try:
-            self.user_repository.create_user(
+            created_user = self.user_repository.create_user(
                 email=user.email,
                 first_name=user.first_name,
                 last_name=user.last_name,
@@ -48,6 +49,8 @@ class UserService:
         except Exception:
             self.conn.rollback()
             raise
+
+        return created_user
 
     def login(self, credentials: UserLogin) -> dict[str, Any]:
         """
