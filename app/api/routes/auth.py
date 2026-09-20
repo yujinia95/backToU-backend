@@ -2,7 +2,7 @@
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from psycopg import Connection
 
 from app.core.database import get_db
@@ -18,31 +18,28 @@ router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
 @router.post(
     "/signup",
     status_code=status.HTTP_201_CREATED,
-    response_class=Response,
 )
 def signup(
     user: UserCreate,
     conn: Annotated[Connection, Depends(get_db)],
-) -> Response:
+) -> UserResponse:
     """
     Handle a sign-up request using validated user data.
 
     Delegate account creation to UserService, translate a duplicate email
-    into an HTTP 409 response, and return an empty HTTP 201 response when
-    the account is created successfully.
+    into an HTTP 409 response, and return the created user's public data
+    with an HTTP 201 response when the account is created successfully.
     """
 
     service = UserService(conn)
 
     try:
-        service.signup(user)
+        return service.signup(user)
     except EmailAlreadyExistsError as error:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=str(error),
         ) from error
-
-    return Response(status_code=status.HTTP_201_CREATED)
 
 
 @router.post(
