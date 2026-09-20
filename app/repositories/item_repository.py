@@ -20,7 +20,7 @@ class ItemRepository:
         title: str,
         description: str | None,
         category: str,
-        colors: list[str] | None,
+        colors: list[str],
         brand: str | None,
         location: str,
     ) -> dict[str, Any]:
