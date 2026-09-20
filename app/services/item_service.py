@@ -6,7 +6,15 @@ from app.exceptions.item import EmptyUpdateError, ItemNotFoundError, UserNotFoun
 from app.schemas.item import ItemResponse, ItemPostRequest, ItemUpdateRequest
 from typing import List
 
-NOT_NULLABLE_FIELDS = {"type", "status", "date", "title", "category", "location"}
+NOT_NULLABLE_FIELDS = {
+    "type",
+    "status",
+    "date",
+    "title",
+    "category",
+    "colors",
+    "location",
+}
 
 class ItemService:
     def __init__(self, conn: Connection) -> None:

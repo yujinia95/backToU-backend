@@ -1,7 +1,12 @@
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, StringConstraints, field_validator
 from datetime import date as date_type, datetime
-from typing import Optional, List
+from typing import Annotated, Optional, List
 from enum import Enum
+
+Color = Annotated[
+    str,
+    StringConstraints(strip_whitespace=True, min_length=1, max_length=20),
+]
 
 class ItemType(str, Enum):
     LOST = "lost"
@@ -18,7 +23,7 @@ class ItemPostRequest(BaseModel):
     title: str = Field(min_length=1, max_length=100)
     description: Optional[str] = Field(default=None, max_length=2000)
     category: str = Field(min_length=1, max_length=50)
-    colors: Optional[List[str]] = None
+    colors: List[Color] = Field(min_length=1)
     brand: Optional[str] = Field(default=None, max_length=100)
     location: str = Field(min_length=1)
 
@@ -35,7 +40,7 @@ class ItemUpdateRequest(BaseModel):
     title: Optional[str] = Field(default=None, min_length=1, max_length=100)
     description: Optional[str] = Field(default=None, max_length=2000)
     category: Optional[str] = Field(default=None, min_length=1, max_length=50)
-    colors: Optional[List[str]] = None
+    colors: Optional[List[Color]] = Field(default=None, min_length=1)
     brand: Optional[str] = Field(default=None, max_length=100)
     location: Optional[str] = Field(default=None, min_length=1)
 
@@ -55,7 +60,7 @@ class ItemResponse(BaseModel):
     title: str
     description: Optional[str] = None
     category: str
-    colors: Optional[List[str]] = None
+    colors: List[Color]
     brand: Optional[str] = None
     location: str
     created_at: datetime

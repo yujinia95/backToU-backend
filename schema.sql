@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS items (
     title VARCHAR(100) NOT NULL,
     description TEXT,
     category VARCHAR(50) NOT NULL,
-    colors VARCHAR(20)[],
+    colors VARCHAR(20)[] NOT NULL CHECK (cardinality(colors) > 0),
     brand VARCHAR(100),
     location TEXT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW()
