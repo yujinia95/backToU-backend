@@ -1,12 +1,29 @@
 # BaseModel validates input data using the field types and rules we define.
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
+from app.core.constants import (
+    EMAIL_MAX_LENGTH,
+    NAME_MAX_LENGTH,
+    NAME_MIN_LENGTH,
+    PASSWORD_MAX_LENGTH,
+    PASSWORD_MIN_LENGTH,
+)
+
 
 class UserCreate(BaseModel):
-    email: EmailStr = Field(max_length=50)
-    first_name: str = Field(min_length=1, max_length=50)
-    last_name: str = Field(min_length=1, max_length=50)
-    password: str = Field(min_length=8, max_length=128)
+    email: EmailStr = Field(max_length=EMAIL_MAX_LENGTH)
+    first_name: str = Field(
+        min_length=NAME_MIN_LENGTH,
+        max_length=NAME_MAX_LENGTH,
+    )
+    last_name: str = Field(
+        min_length=NAME_MIN_LENGTH,
+        max_length=NAME_MAX_LENGTH,
+    )
+    password: str = Field(
+        min_length=PASSWORD_MIN_LENGTH,
+        max_length=PASSWORD_MAX_LENGTH,
+    )
 
     # Remove surrounding whitespace before validating name lengths.
     @field_validator("first_name", "last_name", mode="before")
