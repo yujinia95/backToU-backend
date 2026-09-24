@@ -5,7 +5,7 @@ from psycopg import Connection
 
 from app.core.database import get_db
 from app.exceptions.item import EmptyUpdateError, ItemNotFoundError, UserNotFoundError, InvalidUpdateError
-from app.schemas.item import ItemPostRequest, ItemResponse, ItemUpdateRequest
+from app.schemas.item import ItemDetailResponse, ItemPostRequest, ItemResponse, ItemUpdateRequest
 from app.services.item_service import ItemService
 
 router = APIRouter(prefix="/api/v1/items", tags=["items"])
@@ -30,7 +30,7 @@ def get_items(conn: Annotated[Connection, Depends(get_db)]) -> List[ItemResponse
 
 
 @router.get("/{id}")
-def get_item(id: int, conn: Annotated[Connection, Depends(get_db)]) -> ItemResponse:
+def get_item(id: int, conn: Annotated[Connection, Depends(get_db)]) -> ItemDetailResponse:
     service = ItemService(conn)
     try:
         return service.get_item_by_id(id)
