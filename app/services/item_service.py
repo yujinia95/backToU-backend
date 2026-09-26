@@ -3,7 +3,7 @@ from psycopg.errors import ForeignKeyViolation
 
 from app.repositories.item_repository import ItemRepository
 from app.exceptions.item import EmptyUpdateError, ItemNotFoundError, UserNotFoundError, InvalidUpdateError
-from app.schemas.item import ItemResponse, ItemPostRequest, ItemUpdateRequest
+from app.schemas.item import ItemDetailResponse, ItemResponse, ItemPostRequest, ItemUpdateRequest
 from typing import List
 
 NOT_NULLABLE_FIELDS = {
@@ -44,11 +44,18 @@ class ItemService:
 
         return ItemResponse(**row)
 
-    def get_item_by_id(self, item_id: int) -> ItemResponse:
+    def get_item_by_id(self, item_id: int) -> ItemDetailResponse:
         row = self.item_repository.get_by_id(item_id)
         if row is None:
             raise ItemNotFoundError("Item not found.")
-        return ItemResponse(**row)
+        return ItemDetailResponse(
+            **row,
+            poster={
+                "id": row["poster_id"],
+                "first_name": row["poster_first_name"],
+                "last_name": row["poster_last_name"],
+            },
+        )
 
     def get_all_items(self) -> List[ItemResponse]:
         rows = self.item_repository.get_all()

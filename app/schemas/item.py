@@ -64,3 +64,11 @@ class ItemResponse(BaseModel):
     brand: Optional[str] = None
     location: str
     created_at: datetime
+
+class ItemPosterResponse(BaseModel):
+    id: int
+    first_name: str
+    last_name: str
+
+class ItemDetailResponse(ItemResponse):
+    poster: ItemPosterResponse

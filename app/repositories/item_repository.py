@@ -42,13 +42,29 @@ class ItemRepository:
         return created_item
 
     def get_by_id(self, item_id: int) -> dict[str, Any] | None:
-        """Fetch an item row by id, or return None."""
+        """Fetch an item and its poster by id, or return None."""
         with self.conn.cursor() as cursor:
             cursor.execute(
                 """
-                SELECT id, user_id, type, status, date, title, description, category, colors, brand, location, created_at
-                FROM items
-                WHERE id = %s
+                SELECT
+                    i.id,
+                    i.user_id,
+                    i.type,
+                    i.status,
+                    i.date,
+                    i.title,
+                    i.description,
+                    i.category,
+                    i.colors,
+                    i.brand,
+                    i.location,
+                    i.created_at,
+                    u.id AS poster_id,
+                    u.first_name AS poster_first_name,
+                    u.last_name AS poster_last_name
+                FROM items AS i
+                JOIN users AS u ON u.id = i.user_id
+                WHERE i.id = %s
                 """,
                 (item_id,),
             )
