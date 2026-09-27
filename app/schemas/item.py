@@ -64,6 +64,8 @@ class ItemResponse(BaseModel):
     brand: Optional[str] = None
     location: str
     created_at: datetime
+    # Set by the server when status becomes "returned"; never accepted from clients.
+    returned_at: Optional[datetime] = None
 
 class ItemPosterResponse(BaseModel):
     id: int

@@ -1,9 +1,11 @@
+from datetime import datetime
+
 from psycopg import Connection
 from psycopg.errors import ForeignKeyViolation
 
 from app.repositories.item_repository import ItemRepository
 from app.exceptions.item import EmptyUpdateError, ItemNotFoundError, UserNotFoundError, InvalidUpdateError
-from app.schemas.item import ItemDetailResponse, ItemResponse, ItemPostRequest, ItemUpdateRequest
+from app.schemas.item import ItemDetailResponse, ItemResponse, ItemPostRequest, ItemStatus, ItemUpdateRequest
 from typing import List
 
 NOT_NULLABLE_FIELDS = {
@@ -71,9 +73,26 @@ class ItemService:
         if not update_data:
             raise EmptyUpdateError("No fields provided to update.")
 
-        set_clauses = [f"{field} = %s" for field in update_data.keys()]
+        # returned_at is owned by the server: stamped when an item becomes
+        # "returned", cleared when it moves back to any other status. A database
+        # constraint keeps the two in step, so a returned item always has a date.
+        if "status" in update_data:
+            update_data["returned_at"] = (
+                datetime.now() if update_data["status"] == ItemStatus.RETURNED else None
+            )
+
+        set_clauses = []
+        values = []
+        for field, value in update_data.items():
+            if field == "returned_at" and value is not None:
+                # Re-sending status="returned" must not rewrite the date the
+                # item actually went back, so only an empty column is filled.
+                set_clauses.append("returned_at = COALESCE(returned_at, %s)")
+            else:
+                set_clauses.append(f"{field} = %s")
+            values.append(value)
+
         set_clause_str = ", ".join(set_clauses)
-        values = list(update_data.values())
 
         try:
             row = self.item_repository.update(item_id, set_clause_str, values)
