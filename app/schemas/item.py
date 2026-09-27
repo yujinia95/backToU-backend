@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field, StringConstraints, field_validator
 from datetime import date as date_type, datetime
-from typing import Annotated, Optional, List
+from typing import Annotated, List
 from enum import Enum
 
 Color = Annotated[
@@ -21,10 +21,10 @@ class ItemPostRequest(BaseModel):
     type: ItemType
     date: date_type
     title: str = Field(min_length=1, max_length=100)
-    description: Optional[str] = Field(default=None, max_length=2000)
+    description: str | None = Field(default=None, max_length=2000)
     category: str = Field(min_length=1, max_length=50)
     colors: List[Color] = Field(min_length=1)
-    brand: Optional[str] = Field(default=None, max_length=100)
+    brand: str | None = Field(default=None, max_length=100)
     location: str = Field(min_length=1)
 
     @field_validator("title", "category", "location", mode="before")
@@ -34,15 +34,15 @@ class ItemPostRequest(BaseModel):
         return value
 
 class ItemUpdateRequest(BaseModel):
-    type: Optional[ItemType] = Field(default=None)
-    status: Optional[ItemStatus] = Field(default=None)
-    date: Optional[date_type] = None
-    title: Optional[str] = Field(default=None, min_length=1, max_length=100)
-    description: Optional[str] = Field(default=None, max_length=2000)
-    category: Optional[str] = Field(default=None, min_length=1, max_length=50)
-    colors: Optional[List[Color]] = Field(default=None, min_length=1)
-    brand: Optional[str] = Field(default=None, max_length=100)
-    location: Optional[str] = Field(default=None, min_length=1)
+    type: ItemType | None = Field(default=None)
+    status: ItemStatus | None = Field(default=None)
+    date: date_type | None = None
+    title: str | None = Field(default=None, min_length=1, max_length=100)
+    description: str | None = Field(default=None, max_length=2000)
+    category: str | None = Field(default=None, min_length=1, max_length=50)
+    colors: List[Color] | None = Field(default=None, min_length=1)
+    brand: str | None = Field(default=None, max_length=100)
+    location: str | None = Field(default=None, min_length=1)
 
     @field_validator("title", "category", "location", mode="before")
     def strip_whitespace(value):
@@ -58,14 +58,14 @@ class ItemResponse(BaseModel):
     status: ItemStatus
     date: date_type
     title: str
-    description: Optional[str] = None
+    description: str | None = None
     category: str
     colors: List[Color]
-    brand: Optional[str] = None
+    brand: str | None = None
     location: str
     created_at: datetime
     # Set by the server when status becomes "returned"; never accepted from clients.
-    returned_at: Optional[datetime] = None
+    returned_at: datetime | None = None
 
 class ItemPosterResponse(BaseModel):
     id: int
