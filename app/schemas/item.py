@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field, StringConstraints, field_validator
 from datetime import date as date_type, datetime
-from typing import Annotated, List
+from typing import Annotated
 from enum import Enum
 
 Color = Annotated[
@@ -23,7 +23,7 @@ class ItemPostRequest(BaseModel):
     title: str = Field(min_length=1, max_length=100)
     description: str | None = Field(default=None, max_length=2000)
     category: str = Field(min_length=1, max_length=50)
-    colors: List[Color] = Field(min_length=1)
+    colors: list[Color] = Field(min_length=1)
     brand: str | None = Field(default=None, max_length=100)
     location: str = Field(min_length=1)
 
@@ -40,7 +40,7 @@ class ItemUpdateRequest(BaseModel):
     title: str | None = Field(default=None, min_length=1, max_length=100)
     description: str | None = Field(default=None, max_length=2000)
     category: str | None = Field(default=None, min_length=1, max_length=50)
-    colors: List[Color] | None = Field(default=None, min_length=1)
+    colors: list[Color] | None = Field(default=None, min_length=1)
     brand: str | None = Field(default=None, max_length=100)
     location: str | None = Field(default=None, min_length=1)
 
@@ -60,7 +60,7 @@ class ItemResponse(BaseModel):
     title: str
     description: str | None = None
     category: str
-    colors: List[Color]
+    colors: list[Color]
     brand: str | None = None
     location: str
     created_at: datetime

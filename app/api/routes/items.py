@@ -1,4 +1,4 @@
-from typing import Annotated, List
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from psycopg import Connection
@@ -24,7 +24,7 @@ def create_item_endpoint(
 
 
 @router.get("")
-def get_items(conn: Annotated[Connection, Depends(get_db)]) -> List[ItemResponse]:
+def get_items(conn: Annotated[Connection, Depends(get_db)]) -> list[ItemResponse]:
     service = ItemService(conn)
     return service.get_all_items()
 

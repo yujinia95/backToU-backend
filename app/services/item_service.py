@@ -6,7 +6,6 @@ from psycopg.errors import ForeignKeyViolation
 from app.repositories.item_repository import ItemRepository
 from app.exceptions.item import EmptyUpdateError, ItemNotFoundError, UserNotFoundError, InvalidUpdateError
 from app.schemas.item import ItemDetailResponse, ItemResponse, ItemPostRequest, ItemStatus, ItemUpdateRequest
-from typing import List
 
 NOT_NULLABLE_FIELDS = {
     "type",
@@ -59,7 +58,7 @@ class ItemService:
             },
         )
 
-    def get_all_items(self) -> List[ItemResponse]:
+    def get_all_items(self) -> list[ItemResponse]:
         rows = self.item_repository.get_all()
         return [ItemResponse(**row) for row in rows]
 
