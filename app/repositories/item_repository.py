@@ -30,7 +30,7 @@ class ItemRepository:
                 """
                 INSERT INTO items (user_id, type, date, title, description, category, colors, brand, location)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-                RETURNING id, user_id, type, status, date, title, description, category, colors, brand, location, created_at
+                RETURNING id, user_id, type, status, date, title, description, category, colors, brand, location, created_at, returned_at
                 """,
                 (user_id, type_, date_, title, description, category, colors, brand, location),
             )
@@ -59,6 +59,7 @@ class ItemRepository:
                     i.brand,
                     i.location,
                     i.created_at,
+                    i.returned_at,
                     u.id AS poster_id,
                     u.first_name AS poster_first_name,
                     u.last_name AS poster_last_name
@@ -75,7 +76,7 @@ class ItemRepository:
         with self.conn.cursor() as cursor:
             cursor.execute(
                 """
-                SELECT id, user_id, type, status, date, title, description, category, colors, brand, location, created_at
+                SELECT id, user_id, type, status, date, title, description, category, colors, brand, location, created_at, returned_at
                 FROM items
                 """
             )
@@ -89,7 +90,7 @@ class ItemRepository:
                 UPDATE items
                 SET {set_clause_str}
                 WHERE id = %s
-                RETURNING id, user_id, type, status, date, title, description, category, colors, brand, location, created_at
+                RETURNING id, user_id, type, status, date, title, description, category, colors, brand, location, created_at, returned_at
                 """,
                 values + [item_id],
             )

@@ -19,5 +19,9 @@ CREATE TABLE IF NOT EXISTS items (
     colors VARCHAR(20)[] NOT NULL CHECK (cardinality(colors) > 0),
     brand VARCHAR(100),
     location TEXT NOT NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    returned_at TIMESTAMP,
+    -- A returned item always carries its return date, and nothing else does.
+    CONSTRAINT items_returned_at_matches_status
+        CHECK ((status = 'returned') = (returned_at IS NOT NULL))
 );
