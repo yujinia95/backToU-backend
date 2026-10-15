@@ -4,6 +4,3 @@ class EmailAlreadyExistsError(Exception):
 
 class InvalidCredentialsError(Exception):
     """Raised when a login email or password is incorrect."""
-
-class UserNotFoundError(Exception):
-    """Raised when an user with the given id does not exist."""
