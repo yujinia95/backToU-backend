@@ -52,35 +52,17 @@ class UserRepository:
 
         if created_user is None:
             raise RuntimeError("Database did not return the created user")
-
         return created_user
     
     def get_by_id(self, user_id: int) -> dict[str, Any] | None:
-        """Fetch an user by id, or return None."""
+        """Fetch a user by id, or return None."""
         with self.conn.cursor() as cursor:
             cursor.execute(
                 """
-                SELECT
-                    i.id,
-                    i.user_id,
-                    i.type,
-                    i.status,
-                    i.date,
-                    i.title,
-                    i.description,
-                    i.category,
-                    i.colors,
-                    i.brand,
-                    i.location,
-                    i.created_at,
-                    i.returned_at,
-                    u.id AS poster_id,
-                    u.first_name AS poster_first_name,
-                    u.last_name AS poster_last_name
-                FROM items AS i
-                JOIN users AS u ON u.id = i.user_id
-                WHERE i.id = %s
+                SELECT id
+                FROM users
+                WHERE id = %s
                 """,
-                (item_id,),
+                (user_id,),
             )
             return cursor.fetchone()
