@@ -4,6 +4,7 @@ from psycopg import Connection
 from app.core.database import get_db
 from app.services.match_service import MatchService
 from app.exceptions.item import UserNotFoundError
+from app.schemas.match import MatchGroupResponse
 
 router = APIRouter(prefix="/api/v1/users", tags=["users"])
 

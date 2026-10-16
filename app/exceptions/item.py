@@ -1,6 +1,5 @@
 class ItemNotFoundError(Exception):
-    """Raised when an item with the given id does not exist."""
-
+    """Raised when an item with the given item_id does not exist."""
 
 class EmptyUpdateError(Exception):
     """Raised when an update request contains no fields to update."""

@@ -55,7 +55,7 @@ class UserRepository:
         return created_user
     
     def get_by_id(self, user_id: int) -> dict[str, Any] | None:
-        """Fetch a user by id, or return None."""
+        """Fetch a user by user_id, or return None."""
         with self.conn.cursor() as cursor:
             cursor.execute(
                 """
