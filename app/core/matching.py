@@ -21,25 +21,32 @@ def preprocessor(string) -> list[str]:
     return re.findall(r"[a-z0-9]+", string.lower())
     
 class MatchScore:
-    def score_total(self, item, candidate):
+    def score_total(self, item, candidate) -> tuple[int, list[str]]:
         rules = [
-            ("category", self.score_category),
-            ("color", self.score_colors),
-            ("location", self.score_location),
-            ("date", self.score_date),
-            ("brand", self.score_brand),
-            (None, self.score_keywords),
+            ("category", self.score_category, CATEGORY_MAX_POINTS),
+            ("color", self.score_colors, COLOR_MAX_POINTS),
+            ("location", self.score_location, LOCATION_MAX_POINTS),
+            ("date", self.score_date, DATE_MAX_POINTS),
+            ("brand", self.score_brand, BRAND_MAX_POINTS),
+            (None, self.score_keywords, KEYWORD_MAX_POINTS),
         ]
 
-        total = 0
+        total = 0       # Points this pair actually earned
+        possible = 0    # Max points this pair could have earned 
         reasons = []
-        for code, rule in rules:
+        for code, rule, max_points in rules:
             points = rule(item, candidate)
+            
+            # Skip rules that can't be judged (e.g. a missing brand)
+            if points is None:
+                continue
+
             total += points
+            possible += max_points
             if points > 0 and code is not None:
                 reasons.append(code)
-
-        return round(total), reasons
+        # Rescale to 100 so missing optional info doesn't lower the score
+        return round(total / possible * 100), reasons
     
     def score_category(self, item, candidate) -> float:
         if item["category"].lower() == candidate["category"].lower():
@@ -62,18 +69,25 @@ class MatchScore:
         difference = abs((item["date"] - candidate["date"]).days)
         return max(0, 1 - difference / DATE_MAX_DAYS) * DATE_MAX_POINTS
         
-    def score_brand(self, item, candidate) -> float:
-        if (item["brand"] is None or candidate["brand"] is None): return 0
+    def score_brand(self, item, candidate) -> float | None:
+        if (item["brand"] is None or candidate["brand"] is None): return None
         if (item["brand"].lower() == candidate["brand"].lower()): return BRAND_MAX_POINTS
         return 0
-        
+
+
     def score_keywords(self, item, candidate) -> float:
+        """Score how many words the two posts share in their title and description.
+
+        Title counts for 70% and description for 30%.
+        If either post has no description, the title counts for 100%
+        """
         title_ratio = overlap_ratio(item["title"], candidate["title"])
 
-        desc_ratio = 0
-        if item["description"] and candidate["description"]:
-            desc_ratio = overlap_ratio(item["description"], candidate["description"])
+        # If either post has no description, judge by the title alone (full weight)
+        if not item["description"] or not candidate["description"]:
+            return title_ratio * KEYWORD_MAX_POINTS
 
+        desc_ratio = overlap_ratio(item["description"], candidate["description"])
         ratio = TITLE_WEIGHT * title_ratio + (1 - TITLE_WEIGHT) * desc_ratio
         return ratio * KEYWORD_MAX_POINTS
         
