@@ -2,7 +2,7 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.routes import auth, health, items
+from app.api.routes import auth, health, items, users
 
 app = FastAPI(title="BackToU API")
 
@@ -17,3 +17,4 @@ app.add_middleware(
 app.include_router(health.router)
 app.include_router(auth.router)
 app.include_router(items.router)
+app.include_router(users.router)
