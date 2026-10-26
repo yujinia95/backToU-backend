@@ -15,6 +15,18 @@ class ItemType(str, Enum):
 class ItemStatus(str, Enum):
     ACTIVE = "active"
     RETURNED = "returned"
+
+# Mirrors the options offered by the frontend's category dropdown.
+class ItemCategory(str, Enum):
+    BAGS = "Bags"
+    CLOTHING = "Clothing"
+    ELECTRONICS = "Electronics"
+    KEYS = "Keys"
+    JEWELRY = "Jewelry"
+    ACCESSORIES = "Accessories"
+    SPORTS = "Sports"
+    DOCUMENTS = "Documents"
+    OTHER = "Other"
     
 class ItemPostRequest(BaseModel):
     user_id: int
@@ -22,7 +34,7 @@ class ItemPostRequest(BaseModel):
     date: date_type
     title: str = Field(min_length=1, max_length=100)
     description: str | None = Field(default=None, max_length=2000)
-    category: str = Field(min_length=1, max_length=50)
+    category: ItemCategory
     colors: list[Color] = Field(min_length=1)
     brand: str | None = Field(default=None, max_length=100)
     location: str = Field(min_length=1)
@@ -39,7 +51,7 @@ class ItemUpdateRequest(BaseModel):
     date: date_type | None = None
     title: str | None = Field(default=None, min_length=1, max_length=100)
     description: str | None = Field(default=None, max_length=2000)
-    category: str | None = Field(default=None, min_length=1, max_length=50)
+    category: ItemCategory | None = Field(default=None)
     colors: list[Color] | None = Field(default=None, min_length=1)
     brand: str | None = Field(default=None, max_length=100)
     location: str | None = Field(default=None, min_length=1)
