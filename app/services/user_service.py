@@ -2,16 +2,16 @@ from typing import Any
 
 from psycopg import Connection
 
-from app.core.security import hash_password, verify_password, create_token
-from app.exceptions.user import EmailAlreadyExistsError, InvalidCredentialsError
+from app.core.security import hash_password, verify_password, create_token, verify_token
+from app.exceptions.user import EmailAlreadyExistsError, InvalidCredentialsError, TokenUserNotFoundError
 from app.repositories.user_repository import UserRepository
-from app.schemas.login import UserLogin, LoginResponse
+from app.schemas.login import UserLogin
 from app.schemas.user import UserCreate
 
 
 class UserService:
     """
-    Handle user registration and login workflows.
+    Handle user registration, login workflows, and token verification.
 
     Coordinates user lookup and creation through UserRepository and handles
     password hashing and verification through the security module.
@@ -85,3 +85,15 @@ class UserService:
                 "last_name": existing_user["last_name"],
             }  
         }
+    
+    def get_current_user(self, token: str) -> dict[str, Any]:
+        """
+        Verify if the token is valid and find the corresponding user info from DB
+        """
+        user_id = verify_token(token)
+        user_info = self.user_repository.get_by_id(user_id)
+        
+        if user_info is None:
+            raise TokenUserNotFoundError("Invalid User")
+        
+        return user_info
