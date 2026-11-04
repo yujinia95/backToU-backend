@@ -4,3 +4,6 @@ class EmailAlreadyExistsError(Exception):
 
 class InvalidCredentialsError(Exception):
     """Raised when a login email or password is incorrect."""
+
+class InvalidUserTokenError(Exception):
+    """Raised when the token is expired or the key doesn't match"""
