@@ -9,6 +9,10 @@ class Settings(BaseSettings):
     db_user: str
     db_password: str = ""  # empty if no password is set
     db_name: str
+    
+    jwt_secret_key: str
+    jwt_algorithm: str = "HS256"
+    jwt_expire_minutes: int = 1440
 
     # Read values from the .env file.
     model_config = SettingsConfigDict(env_file=".env")
