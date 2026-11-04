@@ -7,7 +7,7 @@ from psycopg import Connection
 
 from app.core.database import get_db
 from app.exceptions.user import EmailAlreadyExistsError, InvalidCredentialsError
-from app.schemas.login import UserLogin
+from app.schemas.login import UserLogin, LoginResponse
 from app.schemas.user import UserCreate, UserResponse
 from app.services.user_service import UserService
 
@@ -49,12 +49,13 @@ def signup(
 def login(
     credentials: UserLogin,
     conn: Annotated[Connection, Depends(get_db)],
-) -> UserResponse:
+) -> LoginResponse:
     """
     Handle a login request using validated credentials.
 
-    Delegate credential verification to UserService, translate invalid login
-    details into an HTTP 401 response, and return the user's public data
+    Delegate credential verification and token creation to UserService, 
+    translate invalid login details into an HTTP 401 response, 
+    and return the user's public data with created token
     when the email and password are correct.
     """
     service = UserService(conn)
