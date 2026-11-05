@@ -86,7 +86,7 @@ class UserService:
             }  
         }
     
-    def get_current_user(self, token: str) -> dict[str, Any]:
+    def get_user_from_token(self, token: str) -> dict[str, Any]:
         """
         Verify if the token is valid and find the corresponding user info from DB
         """
@@ -96,4 +96,4 @@ class UserService:
         if user_info is None:
             raise TokenUserNotFoundError("Invalid User")
         
-        return user_info
+        return user_info  
