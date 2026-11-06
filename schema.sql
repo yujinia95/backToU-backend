@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS items (
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     returned_at TIMESTAMP,
     -- A returned item always carries its return date, and nothing else does.
+    deleted_at TIMESTAMP,
     CONSTRAINT items_returned_at_matches_status
         CHECK ((status = 'returned') = (returned_at IS NOT NULL))
 );
