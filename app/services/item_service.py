@@ -3,7 +3,7 @@ from datetime import datetime
 from psycopg import Connection
 
 from app.repositories.item_repository import ItemRepository
-from app.exceptions.item import EmptyUpdateError, ItemNotFoundError, InvalidUpdateError
+from app.exceptions.item import EmptyUpdateError, ItemNotFoundError, InvalidUpdateError, NotItemOwnerError
 from app.schemas.item import ItemDetailResponse, ItemResponse, ItemPostRequest, ItemStatus, ItemUpdateRequest
 
 NOT_NULLABLE_FIELDS = {
@@ -58,7 +58,13 @@ class ItemService:
         rows = self.item_repository.get_all()
         return [ItemResponse(**row) for row in rows]
 
-    def update_item(self, item_id: int, data: ItemUpdateRequest) -> ItemResponse:
+    def update_item(self, item_id: int, data: ItemUpdateRequest, user_id: int) -> ItemResponse:
+        item = self.item_repository.get_by_id(item_id)
+        if (item is None): 
+            raise ItemNotFoundError("Item not found.")
+        if (user_id != item["user_id"]):
+            raise NotItemOwnerError("You do not have permission to edit this item.")
+        
         update_data = data.model_dump(exclude_unset=True)
         
         for field in NOT_NULLABLE_FIELDS:

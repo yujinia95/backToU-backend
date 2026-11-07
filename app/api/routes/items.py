@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from psycopg import Connection
 
 from app.core.database import get_db
-from app.exceptions.item import EmptyUpdateError, ItemNotFoundError, InvalidUpdateError
+from app.exceptions.item import EmptyUpdateError, ItemNotFoundError, InvalidUpdateError, NotItemOwnerError
 from app.schemas.item import ItemDetailResponse, ItemPostRequest, ItemResponse, ItemUpdateRequest
 from app.services.item_service import ItemService
 from app.api.dependencies import get_current_user
@@ -40,19 +40,22 @@ def get_item(id: int, conn: Annotated[Connection, Depends(get_db)]) -> ItemDetai
         raise HTTPException(status_code=404, detail=str(error)) from error
 
 
-@router.patch("/{id}")
+@router.patch("/{id}") #item id
 def update_item_endpoint(
     id: int,
     data: ItemUpdateRequest,
     conn: Annotated[Connection, Depends(get_db)],
+    current_user: Annotated[dict[str, Any], Depends(get_current_user)],
 ) -> ItemResponse:
     service = ItemService(conn)
     try:
-        return service.update_item(id, data)
+        return service.update_item(id, data, current_user["id"])
     except ItemNotFoundError as error:
         raise HTTPException(status_code=404, detail=str(error)) from error
     except (EmptyUpdateError, InvalidUpdateError) as error:
         raise HTTPException(status_code=400, detail=str(error)) from error
+    except NotItemOwnerError as error:
+        raise HTTPException(status_code=403, detail=str(error)) from error
 
 
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
