@@ -13,3 +13,7 @@ class InvalidUpdateError(Exception):
     
 class NotItemOwnerError(Exception):
     """Raised when the user is not the owner of the item."""
+
+
+class PhotoNotFoundError(Exception):
+    """Raised when an item has no photo."""

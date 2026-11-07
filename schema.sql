@@ -28,3 +28,12 @@ CREATE TABLE IF NOT EXISTS items (
     CONSTRAINT items_returned_at_matches_status
         CHECK ((status = 'returned') = (returned_at IS NOT NULL))
 );
+
+CREATE TABLE IF NOT EXISTS item_photos (
+    id BIGSERIAL PRIMARY KEY,
+    item_id BIGINT NOT NULL REFERENCES items(id),
+    image_data BYTEA NOT NULL,
+    content_type VARCHAR(50) NOT NULL,
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    CONSTRAINT item_photos_one_per_item UNIQUE (item_id)
+);
