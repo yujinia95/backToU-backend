@@ -67,18 +67,21 @@ class ItemRepository:
                 FROM items AS i
                 JOIN users AS u ON u.id = i.user_id
                 WHERE i.id = %s
+                    And i.deleted_at IS NULL
                 """,
                 (item_id,),
             )
             return cursor.fetchone()
 
     def get_all(self) -> list[dict[str, Any]]:
-        """Fetch all item rows."""
+        """Fetch items that have not been soft-deleted."""
+
         with self.conn.cursor() as cursor:
             cursor.execute(
                 """
                 SELECT id, user_id, type, status, date, title, description, category, colors, brand, location, created_at, returned_at
                 FROM items
+                WHERE deleted_at IS NULL
                 """
             )
             return cursor.fetchall()
@@ -91,6 +94,7 @@ class ItemRepository:
                 UPDATE items
                 SET {set_clause_str}
                 WHERE id = %s
+                  AND deleted_at IS NULL
                 RETURNING id, user_id, type, status, date, title, description, category, colors, brand, location, created_at, returned_at
                 """,
                 values + [item_id],
@@ -98,12 +102,14 @@ class ItemRepository:
             return cursor.fetchone()
 
     def delete(self, item_id: int) -> int:
-        """Delete an item row by id. Returns the number of rows affected."""
+        """Soft-delete an item. Returns the number of rows affected."""
         with self.conn.cursor() as cursor:
             cursor.execute(
                 """
-                DELETE FROM items
+                UPDATE items
+                SET deleted_at = NOW()
                 WHERE id = %s
+                    AND deleted_at IS NULL
                 """,
                 (item_id,),
             )
@@ -117,6 +123,7 @@ class ItemRepository:
                 SELECT id, user_id, type, status, date, title, description, category, colors, brand, location, created_at, returned_at
                 FROM items
                 WHERE user_id = %s AND status = 'active'
+                  AND deleted_at IS NULL
                 """,
                 (user_id,),
                 
@@ -140,6 +147,7 @@ class ItemRepository:
                 FROM items
                 WHERE user_id != %s
                 AND status = 'active'
+                AND deleted_at IS NULL
                 AND type != %s
                 AND date {operator} %s 
                 """,
