@@ -1,12 +1,14 @@
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import Response
 from psycopg import Connection
 
 from app.core.database import get_db
-from app.exceptions.item import EmptyUpdateError, ItemNotFoundError, InvalidUpdateError, NotItemOwnerError
+from app.exceptions.item import EmptyUpdateError, ItemNotFoundError, InvalidUpdateError, NotItemOwnerError, PhotoNotFoundError
 from app.schemas.item import ItemDetailResponse, ItemPostRequest, ItemResponse, ItemUpdateRequest
 from app.services.item_service import ItemService
+from app.services.item_photo_service import ItemPhotoService
 from app.api.dependencies import get_current_user
 
 router = APIRouter(prefix="/api/v1/items", tags=["items"])
@@ -38,6 +40,28 @@ def get_item(id: int, conn: Annotated[Connection, Depends(get_db)]) -> ItemDetai
         return service.get_item_by_id(id)
     except ItemNotFoundError as error:
         raise HTTPException(status_code=404, detail=str(error)) from error
+
+
+@router.get("/{id}/photo", response_class=Response)
+def get_item_photo(
+    id: int,
+    conn: Annotated[Connection, Depends(get_db)],
+) -> Response:
+    service = ItemPhotoService(conn)
+
+    try:
+        photo = service.get_photo(id)
+    except (ItemNotFoundError, PhotoNotFoundError) as error:
+        raise HTTPException(
+            status_code=404,
+            detail=str(error),
+        ) from error
+
+    return Response(
+        content=photo["image_data"],
+        media_type=photo["content_type"],
+        headers={"Cache-Control": "no-store"},
+    )
 
 
 @router.patch("/{id}") #item id
