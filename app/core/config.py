@@ -21,6 +21,10 @@ class Settings(BaseSettings):
         "http://localhost:5500",
     ]
 
+    # Where clients reach this API from the browser. Used to build absolute
+    # URLs in responses, so a page served from another origin can load them.
+    public_base_url: str = "http://localhost:8000"
+
     # Read values from the .env file.
     model_config = SettingsConfigDict(env_file=".env")
 

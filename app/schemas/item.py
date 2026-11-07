@@ -3,6 +3,8 @@ from datetime import date as date_type, datetime
 from typing import Annotated, Any
 from enum import Enum
 
+from app.core.config import settings
+
 Color = Annotated[
     str,
     StringConstraints(strip_whitespace=True, min_length=1, max_length=20),
@@ -61,8 +63,9 @@ class ItemUpdateRequest(BaseModel):
             return value.strip()
         return value
 
-# Kept in step with the items router's prefix.
-PHOTO_URL_PREFIX = "/api/v1/items"
+# Kept in step with the items router's prefix. Absolute, because the frontend
+# is served from a different origin than the API.
+PHOTO_URL_PREFIX = f"{settings.public_base_url.rstrip('/')}/api/v1/items"
 
 
 # for POST, GET, PATCH
