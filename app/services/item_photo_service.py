@@ -2,7 +2,7 @@ from typing import Any
 
 from psycopg import Connection
 
-from app.core.photos import validate_photo
+from app.core.photos import process_photo
 from app.exceptions.item import ItemNotFoundError, NotItemOwnerError, PhotoNotFoundError
 from app.repositories.item_repository import ItemRepository
 from app.repositories.item_photo_repository import ItemPhotoRepository
@@ -43,11 +43,11 @@ class ItemPhotoService:
                     "You do not have permission to change this photo."
                 )
 
-            content_type = validate_photo(image_data)
+            stored_data, content_type = process_photo(image_data)
 
             photo = self.photo_repository.save(
                 item_id,
-                image_data,
+                stored_data,
                 content_type,
             )
             self.conn.commit()

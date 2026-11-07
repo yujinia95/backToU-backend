@@ -1,6 +1,6 @@
-from pydantic import BaseModel, Field, StringConstraints, field_validator
+from pydantic import BaseModel, Field, StringConstraints, field_validator, model_validator
 from datetime import date as date_type, datetime
-from typing import Annotated
+from typing import Annotated, Any
 from enum import Enum
 
 Color = Annotated[
@@ -61,6 +61,10 @@ class ItemUpdateRequest(BaseModel):
             return value.strip()
         return value
 
+# Kept in step with the items router's prefix.
+PHOTO_URL_PREFIX = "/api/v1/items"
+
+
 # for POST, GET, PATCH
 class ItemResponse(BaseModel):
     id: int
@@ -77,6 +81,30 @@ class ItemResponse(BaseModel):
     created_at: datetime
     # Set by the server when status becomes "returned"; never accepted from clients.
     returned_at: datetime | None = None
+    # Where to fetch this item's photo, or None when it has none. Built by the
+    # server so clients never assemble the path themselves: pointing this at
+    # object storage later requires no change on their side.
+    photo_url: str | None = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def derive_photo_url(cls, data: Any) -> Any:
+        """Turn the joined photo timestamp into a URL the client can request.
+
+        The timestamp rides along as a query parameter so that replacing a photo
+        changes its URL, and a cached copy of the old one is never reused.
+        """
+        if not isinstance(data, dict) or data.get("photo_url") is not None:
+            return data
+
+        photo_updated_at = data.get("photo_updated_at")
+        if photo_updated_at is None:
+            return data
+
+        data = dict(data)
+        version = int(photo_updated_at.timestamp())
+        data["photo_url"] = f"{PHOTO_URL_PREFIX}/{data['id']}/photo?v={version}"
+        return data
 
 class ItemPosterResponse(BaseModel):
     id: int

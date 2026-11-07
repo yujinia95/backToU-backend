@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS items (
 
 CREATE TABLE IF NOT EXISTS item_photos (
     id BIGSERIAL PRIMARY KEY,
-    item_id BIGINT NOT NULL REFERENCES items(id),
+    item_id BIGINT NOT NULL REFERENCES items(id) ON DELETE CASCADE,
     image_data BYTEA NOT NULL,
     content_type VARCHAR(50) NOT NULL,
     updated_at TIMESTAMP NOT NULL DEFAULT NOW(),

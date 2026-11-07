@@ -61,6 +61,7 @@ class ItemRepository:
                     i.location,
                     i.created_at,
                     i.returned_at,
+                    (SELECT p.updated_at FROM item_photos AS p WHERE p.item_id = i.id) AS photo_updated_at,
                     u.id AS poster_id,
                     u.first_name AS poster_first_name,
                     u.last_name AS poster_last_name
@@ -79,7 +80,8 @@ class ItemRepository:
         with self.conn.cursor() as cursor:
             cursor.execute(
                 """
-                SELECT id, user_id, type, status, date, title, description, category, colors, brand, location, created_at, returned_at
+                SELECT id, user_id, type, status, date, title, description, category, colors, brand, location, created_at, returned_at,
+                       (SELECT p.updated_at FROM item_photos AS p WHERE p.item_id = items.id) AS photo_updated_at
                 FROM items
                 WHERE deleted_at IS NULL
                 """
@@ -95,7 +97,8 @@ class ItemRepository:
                 SET {set_clause_str}
                 WHERE id = %s
                   AND deleted_at IS NULL
-                RETURNING id, user_id, type, status, date, title, description, category, colors, brand, location, created_at, returned_at
+                RETURNING id, user_id, type, status, date, title, description, category, colors, brand, location, created_at, returned_at,
+                       (SELECT p.updated_at FROM item_photos AS p WHERE p.item_id = items.id) AS photo_updated_at
                 """,
                 values + [item_id],
             )
@@ -120,7 +123,8 @@ class ItemRepository:
         with self.conn.cursor() as cursor:
             cursor.execute(
                 """
-                SELECT id, user_id, type, status, date, title, description, category, colors, brand, location, created_at, returned_at
+                SELECT id, user_id, type, status, date, title, description, category, colors, brand, location, created_at, returned_at,
+                       (SELECT p.updated_at FROM item_photos AS p WHERE p.item_id = items.id) AS photo_updated_at
                 FROM items
                 WHERE user_id = %s AND status = 'active'
                   AND deleted_at IS NULL
@@ -143,7 +147,8 @@ class ItemRepository:
         with self.conn.cursor() as cursor:
             cursor.execute(
                 f"""
-                SELECT id, user_id, type, status, date, title, description, category, colors, brand, location, created_at, returned_at
+                SELECT id, user_id, type, status, date, title, description, category, colors, brand, location, created_at, returned_at,
+                       (SELECT p.updated_at FROM item_photos AS p WHERE p.item_id = items.id) AS photo_updated_at
                 FROM items
                 WHERE user_id != %s
                 AND status = 'active'
