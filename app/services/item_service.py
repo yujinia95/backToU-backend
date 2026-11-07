@@ -106,7 +106,13 @@ class ItemService:
 
         return ItemResponse(**row)
 
-    def delete_item(self, item_id: int) -> None:
+    def delete_item(self, item_id: int, user_id: int) -> None:
+        item = self.item_repository.get_by_id(item_id)
+        if (item is None): 
+            raise ItemNotFoundError("Item not found.")
+        if (user_id != item["user_id"]):
+            raise NotItemOwnerError("You do not have permission to delete this item.")
+        
         try:
             affected = self.item_repository.delete(item_id)
             if affected == 0:

@@ -59,9 +59,14 @@ def update_item_endpoint(
 
 
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_item_endpoint(id: int, conn: Annotated[Connection, Depends(get_db)]):
+def delete_item_endpoint(
+    id: int,
+    conn: Annotated[Connection, Depends(get_db)],
+    current_user: Annotated[dict[str, Any], Depends(get_current_user)],):
     service = ItemService(conn)
     try:
-        service.delete_item(id)
+        service.delete_item(id,current_user["id"])
     except ItemNotFoundError as error:
         raise HTTPException(status_code=404, detail=str(error)) from error
+    except NotItemOwnerError as error:
+        raise HTTPException(status_code=403, detail=str(error)) from error
