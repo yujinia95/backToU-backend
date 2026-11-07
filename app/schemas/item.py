@@ -85,3 +85,10 @@ class ItemPosterResponse(BaseModel):
 
 class ItemDetailResponse(ItemResponse):
     poster: ItemPosterResponse
+
+
+class ItemPhotoResponse(BaseModel):
+    id: int
+    item_id: int
+    content_type: str
+    updated_at: datetime

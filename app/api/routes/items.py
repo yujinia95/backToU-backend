@@ -1,12 +1,27 @@
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from fastapi.responses import Response
 from psycopg import Connection
 
 from app.core.database import get_db
-from app.exceptions.item import EmptyUpdateError, ItemNotFoundError, InvalidUpdateError, NotItemOwnerError, PhotoNotFoundError
-from app.schemas.item import ItemDetailResponse, ItemPostRequest, ItemResponse, ItemUpdateRequest
+from app.core.photos import MAX_PHOTO_BYTES
+from app.exceptions.item import (
+    EmptyUpdateError,
+    InvalidPhotoError,
+    InvalidUpdateError,
+    ItemNotFoundError,
+    NotItemOwnerError,
+    PhotoNotFoundError,
+    PhotoTooLargeError,
+)
+from app.schemas.item import (
+    ItemDetailResponse,
+    ItemPhotoResponse,
+    ItemPostRequest,
+    ItemResponse,
+    ItemUpdateRequest,
+)
 from app.services.item_service import ItemService
 from app.services.item_photo_service import ItemPhotoService
 from app.api.dependencies import get_current_user
@@ -62,6 +77,34 @@ def get_item_photo(
         media_type=photo["content_type"],
         headers={"Cache-Control": "no-store"},
     )
+
+
+@router.put("/{id}/photo")
+def upload_item_photo(
+    id: int,
+    photo: Annotated[UploadFile, File()],
+    conn: Annotated[Connection, Depends(get_db)],
+    current_user: Annotated[dict[str, Any], Depends(get_current_user)],
+) -> ItemPhotoResponse:
+    service = ItemPhotoService(conn)
+
+    try:
+        image_data = photo.file.read(MAX_PHOTO_BYTES + 1)
+        saved_photo = service.save_photo(
+            id,
+            current_user["id"],
+            image_data,
+        )
+    except ItemNotFoundError as error:
+        raise HTTPException(status_code=404, detail=str(error)) from error
+    except NotItemOwnerError as error:
+        raise HTTPException(status_code=403, detail=str(error)) from error
+    except PhotoTooLargeError as error:
+        raise HTTPException(status_code=413, detail=str(error)) from error
+    except InvalidPhotoError as error:
+        raise HTTPException(status_code=400, detail=str(error)) from error
+
+    return ItemPhotoResponse(**saved_photo)
 
 
 @router.patch("/{id}") #item id
