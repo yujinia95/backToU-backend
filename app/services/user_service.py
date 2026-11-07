@@ -2,8 +2,8 @@ from typing import Any
 
 from psycopg import Connection
 
-from app.core.security import hash_password, verify_password
-from app.exceptions.user import EmailAlreadyExistsError, InvalidCredentialsError
+from app.core.security import hash_password, verify_password, create_token, verify_token
+from app.exceptions.user import EmailAlreadyExistsError, InvalidCredentialsError, TokenUserNotFoundError
 from app.repositories.user_repository import UserRepository
 from app.schemas.login import UserLogin
 from app.schemas.user import UserCreate
@@ -11,7 +11,7 @@ from app.schemas.user import UserCreate
 
 class UserService:
     """
-    Handle user registration and login workflows.
+    Handle user registration, login workflows, and token verification.
 
     Coordinates user lookup and creation through UserRepository and handles
     password hashing and verification through the security module.
@@ -54,7 +54,8 @@ class UserService:
 
     def login(self, credentials: UserLogin) -> dict[str, Any]:
         """
-        Verify a user's login credentials and return their public data.
+        Verify a user's login credentials 
+        and return their public data with token.
 
         Find the user by email and compare the submitted password with the
         stored password hash. Raise the same error when either value is wrong.
@@ -71,10 +72,28 @@ class UserService:
 
         if not password_is_valid:
             raise InvalidCredentialsError("Invalid email or password.")
-
+        
+        access_token = create_token(existing_user["id"])
+        
         return {
-            "id": existing_user["id"],
-            "email": existing_user["email"],
-            "first_name": existing_user["first_name"],
-            "last_name": existing_user["last_name"],
+            "access_token": access_token,
+            "token_type": "bearer",
+            "user": {
+                "id": existing_user["id"],
+                "email": existing_user["email"],
+                "first_name": existing_user["first_name"],
+                "last_name": existing_user["last_name"],
+            }  
         }
+    
+    def get_user_from_token(self, token: str) -> dict[str, Any]:
+        """
+        Verify if the token is valid and find the corresponding user info from DB
+        """
+        user_id = verify_token(token)
+        user_info = self.user_repository.get_by_id(user_id)
+        
+        if user_info is None:
+            raise TokenUserNotFoundError("Invalid User")
+        
+        return user_info  

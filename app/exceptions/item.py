@@ -10,3 +10,6 @@ class UserNotFoundError(Exception):
 
 class InvalidUpdateError(Exception):
     """Raised when a NOT NULL field is explicitly set to null in a PATCH request."""
+    
+class NotItemOwnerError(Exception):
+    """Raised when the user is not the owner of the item."""

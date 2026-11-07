@@ -1,10 +1,9 @@
 from datetime import datetime
 
 from psycopg import Connection
-from psycopg.errors import ForeignKeyViolation
 
 from app.repositories.item_repository import ItemRepository
-from app.exceptions.item import EmptyUpdateError, ItemNotFoundError, UserNotFoundError, InvalidUpdateError
+from app.exceptions.item import EmptyUpdateError, ItemNotFoundError, InvalidUpdateError, NotItemOwnerError
 from app.schemas.item import ItemDetailResponse, ItemResponse, ItemPostRequest, ItemStatus, ItemUpdateRequest
 
 NOT_NULLABLE_FIELDS = {
@@ -22,10 +21,10 @@ class ItemService:
         self.conn = conn
         self.item_repository = ItemRepository(self.conn)
 
-    def create_item(self, data: ItemPostRequest) -> ItemResponse:
+    def create_item(self, data: ItemPostRequest, user_id: int) -> ItemResponse:
         try:
             row = self.item_repository.create(
-                user_id=data.user_id,
+                user_id=user_id,
                 type_=data.type,
                 date_=data.date,
                 title=data.title,
@@ -36,9 +35,6 @@ class ItemService:
                 location=data.location,
             )
             self.conn.commit()
-        except ForeignKeyViolation as error:
-            self.conn.rollback()
-            raise UserNotFoundError("User with the given user_id does not exist.") from error
         except Exception:
             self.conn.rollback()
             raise
@@ -62,7 +58,13 @@ class ItemService:
         rows = self.item_repository.get_all()
         return [ItemResponse(**row) for row in rows]
 
-    def update_item(self, item_id: int, data: ItemUpdateRequest) -> ItemResponse:
+    def update_item(self, item_id: int, data: ItemUpdateRequest, user_id: int) -> ItemResponse:
+        item = self.item_repository.get_by_id(item_id)
+        if (item is None): 
+            raise ItemNotFoundError("Item not found.")
+        if (user_id != item["user_id"]):
+            raise NotItemOwnerError("You do not have permission to edit this item.")
+        
         update_data = data.model_dump(exclude_unset=True)
         
         for field in NOT_NULLABLE_FIELDS:
@@ -104,7 +106,13 @@ class ItemService:
 
         return ItemResponse(**row)
 
-    def delete_item(self, item_id: int) -> None:
+    def delete_item(self, item_id: int, user_id: int) -> None:
+        item = self.item_repository.get_by_id(item_id)
+        if (item is None): 
+            raise ItemNotFoundError("Item not found.")
+        if (user_id != item["user_id"]):
+            raise NotItemOwnerError("You do not have permission to delete this item.")
+        
         try:
             affected = self.item_repository.delete(item_id)
             if affected == 0:
