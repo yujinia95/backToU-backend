@@ -1,10 +1,9 @@
 from datetime import datetime
 
 from psycopg import Connection
-from psycopg.errors import ForeignKeyViolation
 
 from app.repositories.item_repository import ItemRepository
-from app.exceptions.item import EmptyUpdateError, ItemNotFoundError, UserNotFoundError, InvalidUpdateError
+from app.exceptions.item import EmptyUpdateError, ItemNotFoundError, InvalidUpdateError
 from app.schemas.item import ItemDetailResponse, ItemResponse, ItemPostRequest, ItemStatus, ItemUpdateRequest
 
 NOT_NULLABLE_FIELDS = {
@@ -22,10 +21,10 @@ class ItemService:
         self.conn = conn
         self.item_repository = ItemRepository(self.conn)
 
-    def create_item(self, data: ItemPostRequest) -> ItemResponse:
+    def create_item(self, data: ItemPostRequest, user_id: int) -> ItemResponse:
         try:
             row = self.item_repository.create(
-                user_id=data.user_id,
+                user_id=user_id,
                 type_=data.type,
                 date_=data.date,
                 title=data.title,
@@ -36,9 +35,6 @@ class ItemService:
                 location=data.location,
             )
             self.conn.commit()
-        except ForeignKeyViolation as error:
-            self.conn.rollback()
-            raise UserNotFoundError("User with the given user_id does not exist.") from error
         except Exception:
             self.conn.rollback()
             raise

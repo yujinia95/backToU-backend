@@ -29,7 +29,7 @@ class ItemCategory(str, Enum):
     OTHER = "Other"
     
 class ItemPostRequest(BaseModel):
-    user_id: int
+    #user_id: int
     type: ItemType
     date: date_type
     title: str = Field(min_length=1, max_length=100)

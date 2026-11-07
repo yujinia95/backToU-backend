@@ -1,12 +1,13 @@
-from typing import Annotated
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from psycopg import Connection
 
 from app.core.database import get_db
-from app.exceptions.item import EmptyUpdateError, ItemNotFoundError, UserNotFoundError, InvalidUpdateError
+from app.exceptions.item import EmptyUpdateError, ItemNotFoundError, InvalidUpdateError
 from app.schemas.item import ItemDetailResponse, ItemPostRequest, ItemResponse, ItemUpdateRequest
 from app.services.item_service import ItemService
+from app.api.dependencies import get_current_user
 
 router = APIRouter(prefix="/api/v1/items", tags=["items"])
 
@@ -15,12 +16,13 @@ router = APIRouter(prefix="/api/v1/items", tags=["items"])
 def create_item_endpoint(
     data: ItemPostRequest,
     conn: Annotated[Connection, Depends(get_db)],
+    current_user: Annotated[dict[str, Any], Depends(get_current_user)],
 ) -> ItemResponse:
+    """
+    Handles item creation request 
+    """
     service = ItemService(conn)
-    try:
-        return service.create_item(data)
-    except UserNotFoundError as error:
-        raise HTTPException(status_code=404, detail=str(error)) from error
+    return service.create_item(data, current_user["id"])
 
 
 @router.get("")
