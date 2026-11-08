@@ -13,3 +13,15 @@ class InvalidUpdateError(Exception):
     
 class NotItemOwnerError(Exception):
     """Raised when the user is not the owner of the item."""
+
+
+class PhotoNotFoundError(Exception):
+    """Raised when an item has no photo."""
+
+
+class InvalidPhotoError(Exception):
+    """Raised when uploaded data is not an acceptable image."""
+
+
+class PhotoTooLargeError(Exception):
+    """Raised when an uploaded photo exceeds the size limit."""
