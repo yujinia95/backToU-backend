@@ -27,6 +27,7 @@ class ItemService:
                 user_id=user_id,
                 type_=data.type,
                 date_=data.date,
+                end_date_=data.end_date,
                 title=data.title,
                 description=data.description,
                 category=data.category,
@@ -73,6 +74,14 @@ class ItemService:
 
         if not update_data:
             raise EmptyUpdateError("No fields provided to update.")
+        # Combine the request with the stored item, so a partial update
+        # (e.g. only "date" sent) is still checked against the other date.
+        new_date = update_data.get("date", item["date"])
+        new_end_date = update_data.get("end_date", item["end_date"])
+
+        # Reject an end date that is on or before the start date.
+        if new_end_date and new_end_date <= new_date:
+            raise InvalidUpdateError("end_date cannot be same or before date")
 
         # returned_at is owned by the server: stamped when an item becomes
         # "returned", cleared when it moves back to any other status. A database

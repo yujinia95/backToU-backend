@@ -33,6 +33,7 @@ class ItemCategory(str, Enum):
 class ItemPostRequest(BaseModel):
     type: ItemType
     date: date_type
+    end_date: date_type | None = None
     title: str = Field(min_length=1, max_length=100)
     description: str | None = Field(default=None, max_length=2000)
     category: ItemCategory
@@ -46,10 +47,18 @@ class ItemPostRequest(BaseModel):
             return value.strip()
         return value
 
+    @model_validator(mode="after")
+    def check_date_range(self):
+        # Reject an end date that is on or before the start date.
+        if self.end_date and self.end_date <= self.date:
+            raise ValueError("end_date cannot be same or before date")
+        return self
+
 class ItemUpdateRequest(BaseModel):
     type: ItemType | None = Field(default=None)
     status: ItemStatus | None = Field(default=None)
     date: date_type | None = None
+    end_date: date_type | None = None
     title: str | None = Field(default=None, min_length=1, max_length=100)
     description: str | None = Field(default=None, max_length=2000)
     category: ItemCategory | None = Field(default=None)
@@ -63,6 +72,12 @@ class ItemUpdateRequest(BaseModel):
             return value.strip()
         return value
 
+    @model_validator(mode="after")
+    def check_date_range(self):
+        if self.date and self.end_date and self.end_date <= self.date:
+            raise ValueError("end_date cannot be same or before date")
+        return self
+
 # Kept in step with the items router's prefix. Absolute, because the frontend
 # is served from a different origin than the API.
 PHOTO_URL_PREFIX = f"{settings.public_base_url.rstrip('/')}/api/v1/items"
@@ -75,6 +90,7 @@ class ItemResponse(BaseModel):
     type: ItemType
     status: ItemStatus
     date: date_type
+    end_date: date_type | None = None
     title: str
     description: str | None = None
     category: str
