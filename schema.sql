@@ -37,3 +37,24 @@ CREATE TABLE IF NOT EXISTS item_photos (
     updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
     CONSTRAINT item_photos_one_per_item UNIQUE (item_id)
 );
+
+CREATE TABLE IF NOT EXISTS conversations (
+    id BIGSERIAL PRIMARY KEY,
+    item_id BIGINT NOT NULL REFERENCES items(id),
+    founder_id INTEGER NOT NULL REFERENCES users(id),
+    claimant_id INTEGER NOT NULL REFERENCES users(id),
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    CONSTRAINT conversations_unique_pair UNIQUE (item_id, founder_id, claimant_id),
+    CONSTRAINT conversations_two_people CHECK (founder_id <> claimant_id)
+);
+
+CREATE TABLE IF NOT EXISTS messages (
+    id BIGSERIAL PRIMARY KEY,
+    conversation_id BIGINT NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
+    sender_id INTEGER NOT NULL REFERENCES users(id),
+    content TEXT NOT NULL CHECK (length(content) > 0),
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS messages_conversation_created_idx
+    ON messages (conversation_id, created_at);
