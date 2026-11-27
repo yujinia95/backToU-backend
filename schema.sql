@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS items (
     type VARCHAR(20) NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'active',
     date DATE NOT NULL,
+    end_date DATE,
     title VARCHAR(100) NOT NULL,
     description TEXT,
     category VARCHAR(50) NOT NULL

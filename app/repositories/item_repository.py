@@ -18,6 +18,7 @@ class ItemRepository:
         user_id: int,
         type_: str,
         date_,
+        end_date_,
         title: str,
         description: str | None,
         category: str,
@@ -29,11 +30,11 @@ class ItemRepository:
         with self.conn.cursor() as cursor:
             cursor.execute(
                 """
-                INSERT INTO items (user_id, type, date, title, description, category, colors, brand, location)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-                RETURNING id, user_id, type, status, date, title, description, category, colors, brand, location, created_at, returned_at
+                INSERT INTO items (user_id, type, date, end_date, title, description, category, colors, brand, location)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                RETURNING id, user_id, type, status, date, end_date, title, description, category, colors, brand, location, created_at, returned_at
                 """,
-                (user_id, type_, date_, title, description, category, colors, brand, location),
+                (user_id, type_, date_, end_date_, title, description, category, colors, brand, location),
             )
             created_item = cursor.fetchone()
 
@@ -53,6 +54,7 @@ class ItemRepository:
                     i.type,
                     i.status,
                     i.date,
+                    i.end_date,
                     i.title,
                     i.description,
                     i.category,
@@ -80,7 +82,7 @@ class ItemRepository:
         with self.conn.cursor() as cursor:
             cursor.execute(
                 """
-                SELECT id, user_id, type, status, date, title, description, category, colors, brand, location, created_at, returned_at,
+                SELECT id, user_id, type, status, date, end_date, title, description, category, colors, brand, location, created_at, returned_at,
                        (SELECT p.updated_at FROM item_photos AS p WHERE p.item_id = items.id) AS photo_updated_at
                 FROM items
                 WHERE deleted_at IS NULL
@@ -97,7 +99,7 @@ class ItemRepository:
                 SET {set_clause_str}
                 WHERE id = %s
                   AND deleted_at IS NULL
-                RETURNING id, user_id, type, status, date, title, description, category, colors, brand, location, created_at, returned_at,
+                RETURNING id, user_id, type, status, date, end_date, title, description, category, colors, brand, location, created_at, returned_at,
                        (SELECT p.updated_at FROM item_photos AS p WHERE p.item_id = items.id) AS photo_updated_at
                 """,
                 values + [item_id],
@@ -123,7 +125,7 @@ class ItemRepository:
         with self.conn.cursor() as cursor:
             cursor.execute(
                 """
-                SELECT id, user_id, type, status, date, title, description, category, colors, brand, location, created_at, returned_at,
+                SELECT id, user_id, type, status, date, end_date, title, description, category, colors, brand, location, created_at, returned_at,
                        (SELECT p.updated_at FROM item_photos AS p WHERE p.item_id = items.id) AS photo_updated_at
                 FROM items
                 WHERE user_id = %s AND status = 'active'
@@ -147,7 +149,7 @@ class ItemRepository:
         with self.conn.cursor() as cursor:
             cursor.execute(
                 f"""
-                SELECT id, user_id, type, status, date, title, description, category, colors, brand, location, created_at, returned_at,
+                SELECT id, user_id, type, status, date, end_date, title, description, category, colors, brand, location, created_at, returned_at,
                        (SELECT p.updated_at FROM item_photos AS p WHERE p.item_id = items.id) AS photo_updated_at
                 FROM items
                 WHERE user_id != %s
