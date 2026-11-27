@@ -8,6 +8,7 @@ from app.core.security import verify_token
 from app.exceptions.conversation import ConversationNotFoundError, NotConversationMemberError
 from app.exceptions.user import InvalidUserTokenError
 from app.services.conversation_service import ConversationService
+from app.core.connection_manager import manager
 
 router = APIRouter(prefix="/ws", tags=["chat"])
 
@@ -29,7 +30,7 @@ async def chat_endpoint(
         user_id = verify_token(token)
     except InvalidUserTokenError:
         await websocket.close(code=1008)
-        return    
+        return
 
     # Reject the handshake when the user is not in this conversation.
     try:
@@ -38,15 +39,15 @@ async def chat_endpoint(
         await websocket.close(code=1008)
         return
 
-
     # Accept the handshake. Nothing can be sent or received before this.
     await websocket.accept()
+    # Register this connection so broadcasts in this conversation reach it.
+    manager.connect(conversation_id, websocket)
 
     try:
         while True:
-            # Wait until this client sends a message.
             message = await websocket.receive_text()
-            # Send the same text back to the same client.
-            await websocket.send_text(f"echo: {message}")
+            await manager.broadcast(conversation_id,
+                                    {"sender_id": user_id, "content": message})
     except WebSocketDisconnect:
-        print(f"Client left conversation {conversation_id}")
+        manager.disconnect(conversation_id, websocket)
