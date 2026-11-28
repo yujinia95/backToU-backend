@@ -66,8 +66,21 @@ class MatchScore:
         return overlap_ratio(item["location"], candidate["location"]) * LOCATION_MAX_POINTS
         
     def score_date(self, item, candidate) -> float:
-        difference = abs((item["date"] - candidate["date"]).days)
-        return max(0, 1 - difference / DATE_MAX_DAYS) * DATE_MAX_POINTS
+        """Score how close the two date ranges are.
+
+        Overlapping ranges get full points. Otherwise the score drops with
+        the number of days between the ranges, down to 0 at DATE_MAX_DAYS.
+        """
+        start_a, end_a = self.date_range(item)
+        start_b, end_b = self.date_range(candidate)
+        # Days between the two ranges. 0 when they overlap.
+        gap = max(0, (start_b - end_a).days, (start_a - end_b).days)
+        return max(0, 1 - gap / DATE_MAX_DAYS) * DATE_MAX_POINTS
+
+    @staticmethod
+    def date_range(post) -> tuple:
+        """Return (start, end) of a post's dates. Without end_date, it is a single day."""
+        return post["date"], post.get("end_date") or post["date"]
         
     def score_brand(self, item, candidate) -> float | None:
         if (item["brand"] is None or candidate["brand"] is None): return None
