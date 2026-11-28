@@ -5,6 +5,8 @@ from psycopg import Connection
 
 from app.core.database import get_db
 from app.core.security import verify_token
+from app.schemas.message import MessageResponse
+from app.services.message_service import MessageService
 from app.exceptions.conversation import ConversationNotFoundError, NotConversationMemberError
 from app.exceptions.user import InvalidUserTokenError
 from app.services.conversation_service import ConversationService
@@ -44,10 +46,16 @@ async def chat_endpoint(
     # Register this connection so broadcasts in this conversation reach it.
     manager.connect(conversation_id, websocket)
 
+    message_service = MessageService(conn)                  
+
     try:
         while True:
-            message = await websocket.receive_text()
-            await manager.broadcast(conversation_id,
-                                    {"sender_id": user_id, "content": message})
+            content = await websocket.receive_text()                
+            # Save first. Skip blank messages.
+            saved = message_service.save_message(conversation_id, user_id, content)   
+            if saved is None:                                       
+                continue                                            
+            # Send the stored row (with id and created_at) to everyone in the room.
+            await manager.broadcast(conversation_id, MessageResponse(**saved).model_dump(mode="json"))  
     except WebSocketDisconnect:
         manager.disconnect(conversation_id, websocket)
