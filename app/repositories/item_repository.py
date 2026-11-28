@@ -141,10 +141,20 @@ class ItemRepository:
             - different user_id
             - status == active
             - opposite type 
-            - for a lost item, candidate found items dated on or after it, and vice versa.
+            - dates that fit: an item can't be found before it was lost, so the end of
+              the found range must be on or after the start of the lost range.
+              A post without an end_date covers a single day (end = date).
         """
-        if item["type"] == ItemType.LOST: operator = ">="
-        else: operator = "<="
+        if item["type"] == ItemType.LOST:
+            # Candidates are found items: compare the end of each found range
+            # (computed in SQL, row by row) with the start of this lost item.
+            date_condition = "COALESCE(end_date, date) >= %s"
+            date_value = item["date"]
+        else:
+            # Candidates are lost items: compare the start of each lost range
+            # with the end of this found item (already known here).
+            date_condition = "date <= %s"
+            date_value = item["end_date"] or item["date"]
         
         with self.conn.cursor() as cursor:
             cursor.execute(
@@ -156,9 +166,9 @@ class ItemRepository:
                 AND status = 'active'
                 AND deleted_at IS NULL
                 AND type != %s
-                AND date {operator} %s 
+                AND {date_condition}
                 """,
-                (item["user_id"], item["type"], item["date"]),
+                (item["user_id"], item["type"], date_value),
             )
             return cursor.fetchall()
         
